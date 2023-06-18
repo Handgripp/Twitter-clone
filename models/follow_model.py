@@ -1,11 +1,7 @@
-import uuid
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.dialects.postgresql import UUID
-
-db = SQLAlchemy()
+from extensions import db
 
 
-class User(db.Model):
+class Follows(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     follower_id = db.Column(db.ForeignKey('user.id'))
     followed_id = db.Column(db.ForeignKey('user.id'))
