@@ -1,3 +1,4 @@
+from models.follow_model import Follows
 from models.post_model import Posts, db
 from repositories.comment_repositories import CommentRepository
 from repositories.user_repositories import UserRepository
@@ -23,7 +24,7 @@ class PostRepository:
         if not post:
             return None
 
-        user = UserRepository.get_one(post.user_id)
+        user = UserRepository.get_one_by_id(post.user_id)
 
         comments = CommentRepository.get_many_by_post_id(post.id)
 
@@ -31,14 +32,14 @@ class PostRepository:
             'id': post.id,
             'user_name': user['name'] if user else None,
             'text': post.text,
-            'likes': len(post.likes),
+            'likes': len(post.likes) if post.likes is not None else 0,
             'created_at': post.created_at,
             'updated_at': post.updated_at,
             'comments': comments
         }
 
         user_liked = False
-        if user_id in post.likes:
+        if post.likes and str(user['id']) in post.likes:
             user_liked = True
 
         post_data['is_liked'] = user_liked
@@ -52,7 +53,7 @@ class PostRepository:
         if not post:
             return None
 
-        user = UserRepository.get_one(post.user_id)
+        user = UserRepository.get_one_by_id(post.user_id)
 
         post_data = {
             'id': post.id,
@@ -65,7 +66,35 @@ class PostRepository:
 
         return post_data
 
+    @staticmethod
+    def get_followed_users_posts(user_id):
+        follows = Follows.query.filter_by(follower_id=user_id).all()
+        followed_user_ids = []
+        for follow in follows:
+            followed_user_ids.append(follow.followed_id)
 
+        posts = Posts.query.filter(Posts.user_id.in_(followed_user_ids)).all()
+        post_data_list = []
+        for post in posts:
+            user = UserRepository.get_one_by_id(post.user_id)
+            post_data = {
+                'id': post.id,
+                'user_name': user['name'] if user else None,
+                'text': post.text,
+                'likes': len(post.likes) if post.likes is not None else 0,
+                'created_at': post.created_at,
+                'updated_at': post.updated_at,
+            }
+
+            user_liked = False
+            if post.likes and str(user['id']) in post.likes:
+                user_liked = True
+
+            post_data['is_liked'] = user_liked
+
+            post_data_list.append(post_data)
+
+        return post_data_list
 
     @staticmethod
     def update(post, data):
@@ -94,5 +123,3 @@ class PostRepository:
 
         db.session.execute(stmt)
         db.session.commit()
-
-

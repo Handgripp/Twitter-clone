@@ -55,7 +55,7 @@ def update_user(current_user):
 @token_required
 def get_one_user(current_user, name):
 
-    user_data = UserRepository.get_one(name)
+    user_data = UserRepository.get_one_by_name(name)
 
     if not user_data:
         return jsonify({'error': 'No user found!'}), 404
@@ -75,36 +75,7 @@ def get_many_users(current_user):
     return jsonify(users_data), 200
 
 
-@user_blueprint.route('/users/<user_id>/follow', methods=['POST'])
-@token_required
-def follow_user(current_user, user_id):
-    follower_id = current_user.id
 
-    if not user_id:
-        return jsonify({'error': 'Bad request'}), 400
-
-    if user_id == current_user.id:
-        return jsonify({'error': 'Bad request'}), 400
-
-    UserRepository.follow(follower_id, user_id)
-
-    return jsonify({}), 204
-
-
-@user_blueprint.route('/users/<user_id>/unfollow', methods=['DELETE'])
-@token_required
-def unfollow_user(current_user, user_id):
-    follower_id = current_user.id
-
-    if not user_id:
-        return jsonify({'error': 'Bad request'}), 400
-
-    if follower_id == user_id:
-        return jsonify({'error': 'Bad request'}), 400
-
-    UserRepository.unfollow(follower_id, user_id)
-
-    return jsonify({}), 204
 
 
 

@@ -3,7 +3,6 @@ from controllers.auth_controller import token_required
 from models.post_model import Posts
 from repositories.post_repositories import PostRepository
 
-
 post_blueprint = Blueprint('post', __name__)
 
 
@@ -49,6 +48,17 @@ def get_post_by_id(current_user, post_id):
     return jsonify(post_data), 200
 
 
+@post_blueprint.route('/posts', methods=['GET'])
+@token_required
+def get_followed_users_posts(current_user):
+    posts = PostRepository.get_followed_users_posts(current_user.id)
+
+    if not posts:
+        return jsonify({'error': 'No post found!'}), 404
+
+    return jsonify(posts), 200
+
+
 @post_blueprint.route('/posts/<post_id>', methods=['DELETE'])
 @token_required
 def delete_post(current_user, post_id):
@@ -65,7 +75,6 @@ def delete_post(current_user, post_id):
 @post_blueprint.route('/posts/<post_id>/likes', methods=['POST'])
 @token_required
 def like_post(current_user, post_id):
-
     action = request.args.get('action')
     if not action:
         return jsonify({'error': 'Bad request1'}), 400
