@@ -10,5 +10,5 @@
  
 ```
 docker compose up --build
-python app.py
+python main.py
 ```
